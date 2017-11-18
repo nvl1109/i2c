@@ -284,14 +284,20 @@ bool mgos_i2c_set_freq(struct mgos_i2c *c, int freq) {
 
 struct mgos_i2c *mgos_i2c_create(const struct mgos_config_i2c *cfg) {
   struct mgos_i2c *c = NULL;
+  // TODO: the mgos_config_i2c in mgos_config.h does not have unit_no field
+  cfg->unit_no = 0;
   if (cfg->sda_gpio < 0 || cfg->sda_gpio > 34 || cfg->scl_gpio < 0 ||
       cfg->scl_gpio > 34 || (cfg->unit_no != 0 && cfg->unit_no != 1) ||
       cfg->freq <= 0) {
+    LOG(LL_ERROR, ("INVALID: sda %d, scl %d, unit_no %d, freq %d", cfg->sda_gpio, cfg->scl_gpio, cfg->unit_no, cfg->freq));
     goto out_err;
   }
 
   c = calloc(1, sizeof(*c));
-  if (c == NULL) return NULL;
+  if (c == NULL) {
+    LOG(LL_ERROR, ("Calloc %d bytes for i2c failed", sizeof(*c)));
+    return NULL;
+  }
 
   i2c_dev_t *dev;
   uint32_t scl_in_sig, scl_out_sig, sda_in_sig, sda_out_sig;
@@ -340,6 +346,7 @@ struct mgos_i2c *mgos_i2c_create(const struct mgos_config_i2c *cfg) {
   dev->int_ena.val = 0; /* No interrupts */
 
   if (!mgos_i2c_set_freq(c, cfg->freq)) {
+    LOG(LL_ERROR, ("I2C Set freq %d failed", cfg->freq));
     goto out_err;
   }
 
