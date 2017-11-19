@@ -72,7 +72,7 @@ static bool esp32_i2c_exec(struct mgos_i2c *c, int num_cmds, int exp_tx,
   int loops = 0;
   bool ok = false;
   uint32_t ints = dev->int_raw.val;
-#if 0
+#if 1
   if (c->debug) {
     LOG(LL_DEBUG,
         ("  begin: tx_fifo %u rx_fifo %u ints 0x%08x",
@@ -199,6 +199,10 @@ bool mgos_i2c_read(struct mgos_i2c *c, uint16_t addr, void *data, size_t len,
         dev->command[ci++].val = I2C_COMMAND_OP_STOP;
       } else {
         dev->command[ci++].val = I2C_COMMAND_OP_END;
+      }
+      if (c->debug) {
+        LOG(LL_DEBUG,
+            ("send %s command with ci %d", stop ? "stop":"end", ci));
       }
       ok = esp32_i2c_exec(c, ci, 0, -1);
     }
